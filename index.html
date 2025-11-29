@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Gestão de Projetos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Fonte Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
+  }
+}
+</script>
+</head>
+<body class="text-gray-800">
+
+    <!-- ========================================== -->
+    <!-- TELA DE AUTENTICAÇÃO -->
+    <!-- ========================================== -->
+    <div id="auth-view" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 bg-blue-600 text-white text-xl font-bold rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Nexus Manager</h1>
+                <p class="text-gray-500 text-sm">Gerenciamento Integrado de Projetos</p>
+            </div>
+
+            <div id="auth-error" class="hidden bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 text-center border border-red-200"></div>
+
+            <form id="auth-form">
+                <div id="field-name-container" class="mb-4 hidden">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="auth-name" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Seu nome">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="auth-email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="admin@sys.com">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="auth-pass" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="******">
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-md shadow-blue-500/30">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-sm">
+                <span id="auth-toggle-text" class="text-gray-600">Não tem uma conta?</span>
+                <button id="auth-toggle-btn" class="text-blue-600 font-bold hover:underline ml-1">Criar conta</button>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t text-xs text-center text-gray-400">
+                <p>Credenciais Admin Padrão:</p>
+                <p>Email: <strong>admin@sys.com</strong> | Senha: <strong>123</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA PRINCIPAL -->
+    <!-- ========================================== -->
+    <div id="app-view" class="hidden min-h-screen flex">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col fixed md:sticky top-0 h-screen z-20 hidden md:flex">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center font-bold shadow-sm">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <span class="text-xl font-bold text-gray-800">Nexus</span>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <button onclick="navTo('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                    <i class="fas fa-chart-pie w-5"></i> Dashboard
+                </button>
+                <button onclick="navTo('projects')" id="nav-projects" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                    <i class="fas fa-folder w-5"></i> Projetos
+                </button>
+                <button onclick="navTo('tasks')" id="nav-tasks" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition">
+                    <i class="fas fa-tasks w-5"></i> Tarefas
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center gap-3 mb-4 px-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold" id="user-avatar">
+                        U
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-gray-800 truncate" id="user-name-display">Usuário</p>
+                        <p class="text-xs text-gray-500 capitalize" id="user-role-display">Função</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 py-2 rounded-lg transition text-sm font-medium">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+            <!-- Header Mobile -->
+            <header class="bg-white border-b h-16 flex items-center justify-between px-4 md:hidden flex-shrink-0">
+                <span class="font-bold text-lg text-blue-600">Nexus</span>
+                <button onclick="toggleMobileMenu()" class="text-gray-600"><i class="fas fa-bars text-xl"></i></button>
+            </header>
+
+            <!-- Área de Conteúdo -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 relative">
+                
+                <!-- 1. VIEW DASHBOARD -->
+                <div id="view-dashboard" class="view-section fade-in hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                        <span class="text-sm bg-blue-100 text-blue-700 py-1 px-3 rounded-full font-medium">Visão Geral</span>
+                    </div>
+
+                    <!-- Cards de KPI -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center gap-4">
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-users text-xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500">Usuários</p>
+                                <h3 class="text-2xl font-bold" id="kpi-users">0</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500 flex items-center gap-4">
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fas fa-briefcase text-xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500">Projetos</p>
+                                <h3 class="text-2xl font-bold" id="kpi-projects">0</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 flex items-center gap-4">
+                            <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-check-circle text-xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500">Concluídos</p>
+                                <h3 class="text-2xl font-bold" id="kpi-completed">0</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500 flex items-center gap-4">
+                            <div class="p-3 bg-yellow-50 text-yellow-600 rounded-lg"><i class="fas fa-clock text-xl"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500">Ativos</p>
+                                <h3 class="text-2xl font-bold" id="kpi-active">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Status dos Projetos</h3>
+                            <div class="relative h-64">
+                                <canvas id="projectsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Usuários (CRUD 1) -->
+                        <div id="admin-users-panel" class="bg-white p-6 rounded-xl shadow-sm flex flex-col">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Usuários Cadastrados</h3>
+                                <button id="btn-new-user" onclick="openUserModal()" class="text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition">
+                                    <i class="fas fa-plus mr-1"></i> Novo
+                                </button>
+                            </div>
+                            <div class="overflow-auto flex-1 custom-scroll">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-sm text-gray-500 border-b">
+                                            <th class="py-2 font-medium">Nome</th>
+                                            <th class="py-2 font-medium">Email</th>
+                                            <th class="py-2 font-medium">Função</th>
+                                            <th class="py-2 font-medium text-right" id="admin-actions-header">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body" class="text-sm">
+                                        <!-- JS preenche aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div id="user-welcome-panel" class="bg-white p-6 rounded-xl shadow-sm hidden flex flex-col items-center justify-center text-center">
+                            <div class="bg-blue-50 p-4 rounded-full text-blue-500 mb-4">
+                                <i class="fas fa-smile-beam text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Bem-vindo ao Nexus!</h3>
+                            <p class="text-gray-500 mt-2">Utilize o menu lateral para gerenciar seus projetos e tarefas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. VIEW PROJETOS (CRUD 2) -->
+                <div id="view-projects" class="view-section fade-in hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Meus Projetos</h2>
+                        <button onclick="openProjectModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition">
+                            <i class="fas fa-plus"></i> Novo Projeto
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            <input type="text" id="project-search" placeholder="Pesquisar por título ou instituição..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onkeyup="renderProjects()">
+                        </div>
+                        <select id="project-filter-status" class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white" onchange="renderProjects()">
+                            <option value="">Todos os Status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Concluído">Concluído</option>
+                        </select>
+                    </div>
+
+                    <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- JS Renderiza Cards Aqui -->
+                    </div>
+                    
+                    <div id="no-projects-msg" class="hidden text-center py-10 text-gray-400">
+                        <i class="fas fa-folder-open text-4xl mb-3"></i>
+                        <p>Nenhum projeto encontrado.</p>
+                    </div>
+                </div>
+
+                <!-- 3. VIEW TAREFAS (CRUD 3) -->
+                <div id="view-tasks" class="view-section fade-in hidden h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Quadro de Tarefas</h2>
+                            <p class="text-gray-500 text-sm">Gerencie o fluxo de trabalho</p>
+                        </div>
+                        <button onclick="openTaskModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition">
+                            <i class="fas fa-plus"></i> Nova Tarefa
+                        </button>
+                    </div>
+
+                    <div class="flex gap-6 overflow-x-auto h-full pb-2 kanban-scroll">
+                        
+                        <div class="flex-1 min-w-[300px] bg-gray-100 rounded-xl p-4 flex flex-col h-full border border-gray-200">
+                            <div class="flex items-center justify-between mb-4 font-bold text-gray-600">
+                                <div class="flex items-center gap-2"><i class="far fa-circle"></i> A Fazer</div>
+                                <span class="bg-white px-2 py-0.5 rounded-full text-xs shadow-sm" id="count-todo">0</span>
+                            </div>
+                            <div id="col-todo" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scroll"></div>
+                        </div>
+
+                        <div class="flex-1 min-w-[300px] bg-blue-50 rounded-xl p-4 flex flex-col h-full border border-blue-100">
+                            <div class="flex items-center justify-between mb-4 font-bold text-blue-600">
+                                <div class="flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Em Progresso</div>
+                                <span class="bg-white px-2 py-0.5 rounded-full text-xs shadow-sm" id="count-progress">0</span>
+                            </div>
+                            <div id="col-progress" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scroll"></div>
+                        </div>
+
+                        <div class="flex-1 min-w-[300px] bg-green-50 rounded-xl p-4 flex flex-col h-full border border-green-100">
+                            <div class="flex items-center justify-between mb-4 font-bold text-green-600">
+                                <div class="flex items-center gap-2"><i class="fas fa-check-circle"></i> Concluído</div>
+                                <span class="bg-white px-2 py-0.5 rounded-full text-xs shadow-sm" id="count-done">0</span>
+                            </div>
+                            <div id="col-done" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scroll"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAIS -->
+    <!-- ========================================== -->
+    
+    <!-- Modal de Projeto -->
+    <div id="modal-project" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-bold text-gray-800" id="modal-project-title">Novo Projeto</h3>
+                <button onclick="closeModal('modal-project')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-project" class="p-6 space-y-4">
+                <input type="hidden" id="project-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Título</label>
+                        <input type="text" id="project-title" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Instituição</label>
+                        <input type="text" id="project-institution" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Objetivo</label>
+                    <textarea id="project-objective" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Data Início</label>
+                        <input type="date" id="project-start" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Data Fim (Prev.)</label>
+                        <input type="date" id="project-end" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                        <select id="project-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="Ativo">Ativo</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Concluído">Concluído</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Resultados</label>
+                    <textarea id="project-results" rows="2" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                    <button type="button" onclick="closeModal('modal-project')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow font-medium">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Tarefa -->
+    <div id="modal-task" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-bold text-gray-800">Nova Tarefa</h3>
+                <button onclick="closeModal('modal-task')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-task" class="p-6 space-y-4">
+                <input type="hidden" id="task-id">
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Título da Tarefa</label>
+                    <input type="text" id="task-title" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Projeto Relacionado</label>
+                    <select id="task-project" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Descrição</label>
+                    <textarea id="task-desc" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Status Inicial</label>
+                    <select id="task-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <option value="Todo">A Fazer</option>
+                        <option value="InProgress">Em Progresso</option>
+                        <option value="Done">Concluído</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                    <button type="button" onclick="closeModal('modal-task')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow font-medium">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Usuário (Novo) -->
+    <div id="modal-user" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-bold text-gray-800" id="modal-user-title">Novo Usuário</h3>
+                <button onclick="closeModal('modal-user')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-user" class="p-6 space-y-4">
+                <input type="hidden" id="user-id">
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="user-name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="user-email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="user-pass" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Deixe vazio para manter a atual">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Função</label>
+                    <select id="user-role" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <option value="user">Usuário Padrão</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+                    <button type="button" onclick="closeModal('modal-user')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow font-medium">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script da Aplicação -->
+    <script src="script.js"></script>
+</body>
+</html>

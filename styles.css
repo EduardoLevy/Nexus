@@ -1,0 +1,17 @@
+body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+
+/* Utilitários */
+.hidden { display: none !important; }
+.fade-in { animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Scrollbar personalizada */
+.custom-scroll::-webkit-scrollbar { height: 8px; width: 6px; }
+.custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+.kanban-scroll::-webkit-scrollbar { height: 8px; }
+.kanban-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.kanban-scroll::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+.kanban-scroll::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
