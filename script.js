@@ -443,33 +443,68 @@ window.editProject = function(id) {
 
 if (formProject) {
     formProject.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('project-id').value;
-        
-        const projectData = {
-            id: id ? Number(id) : Date.now(),
-            title: document.getElementById('project-title').value,
-            institution: document.getElementById('project-institution').value,
-            objective: document.getElementById('project-objective').value,
-            startDate: document.getElementById('project-start').value,
-            endDate: document.getElementById('project-end').value,
-            status: document.getElementById('project-status').value,
-            results: document.getElementById('project-results').value,
-        };
+    e.preventDefault();
+    
+    const id = document.getElementById('project-id').value;
+    const start = document.getElementById('project-start').value;
+    const end = document.getElementById('project-end').value;
 
-        let newProjects = [...state.projects];
-        if (id) {
-            const idx = newProjects.findIndex(p => p.id == id);
-            if (idx > -1) newProjects[idx] = projectData;
-        } else {
-            newProjects.push(projectData);
-        }
+    // Validações
+    if (!start || !end) {
+        alert("As datas não podem estar vazias.");
+        return;
+    }
 
-        saveData(KEYS.PROJECTS, newProjects);
-        closeModal('modal-project');
-        renderProjects();
-        renderDashboard(); // Update charts
-    });
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Verifica se as datas são válidas
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        alert("Insira uma data válida.");
+        return;
+    }
+
+    // Restringe anos absurdos
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+
+    if (startYear < 1900 || endYear < 1900 || startYear > 2100 || endYear > 2100) {
+        alert("O ano deve estar entre 1900 e 2100.");
+        return;
+    }
+
+    // Data final deve ser maior ou igual à inicial
+    if (endDate < startDate) {
+        alert("A data final deve ser maior ou igual à data inicial.");
+        return;
+    }
+
+    // Se passou nas validações → salva
+    const projectData = {
+        id: id ? Number(id) : Date.now(),
+        title: document.getElementById('project-title').value,
+        institution: document.getElementById('project-institution').value,
+        objective: document.getElementById('project-objective').value,
+        startDate: start,
+        endDate: end,
+        status: document.getElementById('project-status').value,
+        results: document.getElementById('project-results').value,
+    };
+
+    let newProjects = [...state.projects];
+    if (id) {
+        const idx = newProjects.findIndex(p => p.id == id);
+        if (idx > -1) newProjects[idx] = projectData;
+    } else {
+        newProjects.push(projectData);
+    }
+
+    saveData(KEYS.PROJECTS, newProjects);
+    closeModal('modal-project');
+    renderProjects();
+    renderDashboard();
+});
+
 }
 
 window.deleteProject = function(id) {
