@@ -57,6 +57,10 @@ const authForm = document.getElementById('auth-form');
 const authToggleBtn = document.getElementById('auth-toggle-btn');
 const authToggleText = document.getElementById('auth-toggle-text');
 const fieldNameContainer = document.getElementById('field-name-container');
+// NOVAS REFERÊNCIAS
+const fieldConfirmPassContainer = document.getElementById('field-confirm-pass-container');
+const authPassConfirmInput = document.getElementById('auth-pass-confirm');
+
 const authSubmitBtn = document.getElementById('auth-submit-btn');
 const authError = document.getElementById('auth-error');
 
@@ -64,18 +68,29 @@ if (authToggleBtn) {
     authToggleBtn.addEventListener('click', (e) => {
         e.preventDefault();
         isLoginMode = !isLoginMode;
+        
         if (isLoginMode) {
+            // Modo LOGIN
             fieldNameContainer.classList.add('hidden');
+            fieldConfirmPassContainer.classList.add('hidden'); // Esconde confirmação
+            
             authSubmitBtn.innerText = 'Entrar';
             authToggleText.innerText = 'Não tem uma conta?';
             authToggleBtn.innerText = 'Criar conta';
+            
             document.getElementById('auth-name').required = false;
+            authPassConfirmInput.required = false; // Tira obrigatoriedade
         } else {
+            // Modo CADASTRO
             fieldNameContainer.classList.remove('hidden');
+            fieldConfirmPassContainer.classList.remove('hidden'); // Mostra confirmação
+            
             authSubmitBtn.innerText = 'Cadastrar';
             authToggleText.innerText = 'Já tem conta?';
             authToggleBtn.innerText = 'Fazer Login';
+            
             document.getElementById('auth-name').required = true;
+            authPassConfirmInput.required = true; // Torna obrigatório
         }
         authError.classList.add('hidden');
     });
@@ -87,10 +102,14 @@ if (authForm) {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         const name = document.getElementById('auth-name').value;
+        
+        // Pega valor da confirmação
+        const confirmPass = authPassConfirmInput.value;
+
         authError.classList.add('hidden');
 
         if (isLoginMode) {
-            // Login
+            // Login Logic
             const user = state.users.find(u => u.email === email && u.password === pass);
             if (user) {
                 loginUser(user);
@@ -98,11 +117,20 @@ if (authForm) {
                 showError('Credenciais inválidas.');
             }
         } else {
-            // Registro
+            // Registration Logic
+            
+            // 1. Valida se senhas batem
+            if (pass !== confirmPass) {
+                showError('As senhas não coincidem!');
+                return;
+            }
+
+            // 2. Valida se email já existe
             if (state.users.find(u => u.email === email)) {
                 showError('Email já está em uso.');
                 return;
             }
+
             const newUser = {
                 id: 'user-' + Date.now(),
                 name: name,
